@@ -6,13 +6,11 @@ Full clean build times for [Gem Wallet iOS](https://github.com/gemwalletcom/gem-
 
 > Results from different Xcode versions are not comparable (different commits).
 
-### Xcode 26.2
+### Xcode 26.2 · macOS 26.2 · [`28c46f7f`](https://github.com/gemwalletcom/gem-ios/commit/28c46f7f) · Rust 1.92.0
 
-**Commit:** [`28c46f7f`](https://github.com/gemwalletcom/gem-ios/commit/28c46f7f) | **Rust:** `1.92.0`
-
-| Device | Chip | Cores | RAM | macOS | Rust | SPM | Build | Total |
-|--------|------|-------|-----|-------|------|-----|-------|-------|
-| Mac Studio | M4 Max | 16 | 64GB | 26.2 | 1m 14s | 2s | 41s | 1m 57s |
+| Device | Chip | Cores | RAM | Rust | SPM | Build | Total |
+|--------|------|-------|-----|------|-----|-------|-------|
+| Mac Studio | M4 Max | 16 | 64GB | 1m 14s | 2s | 41s | 1m 57s |
 
 ## Run
 

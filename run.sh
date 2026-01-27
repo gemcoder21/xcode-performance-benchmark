@@ -256,14 +256,14 @@ update_readme() {
     build_fmt=$(format_duration "$build_time")
     total_fmt=$(format_duration "$total_time")
 
-    # Create the new table row
-    new_row="| $DEVICE_NAME | $CHIP_SHORT | $CORES | ${MEMORY_GB}GB | $MACOS_VERSION | $rust_fmt | $spm_fmt | $build_fmt | $total_fmt |"
+    # Create the new table row (without macOS column)
+    new_row="| $DEVICE_NAME | $CHIP_SHORT | $CORES | ${MEMORY_GB}GB | $rust_fmt | $spm_fmt | $build_fmt | $total_fmt |"
 
-    # Find the Xcode version section
-    section_header="### Xcode $XCODE_VERSION"
+    # Find the Xcode version section (format: ### Xcode X.X · macOS ...)
+    section_pattern="### Xcode $XCODE_VERSION"
 
-    if ! grep -q "$section_header" "$README_FILE"; then
-        echo "Warning: Section '$section_header' not found in README.md"
+    if ! grep -q "$section_pattern" "$README_FILE"; then
+        echo "Warning: Section for Xcode $XCODE_VERSION not found in README.md"
         echo "Please add results manually"
         return
     fi
@@ -286,8 +286,8 @@ update_readme() {
         fi
     else
         # No existing entry, add new row after the table separator line
-        line_num=$(grep -n "$section_header" "$README_FILE" | head -1 | cut -d: -f1)
-        insert_line=$((line_num + 5))
+        line_num=$(grep -n "$section_pattern" "$README_FILE" | head -1 | cut -d: -f1)
+        insert_line=$((line_num + 3))
 
         sed -i '' "${insert_line}a\\
 ${new_row}
