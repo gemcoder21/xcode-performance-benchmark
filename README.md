@@ -1,21 +1,10 @@
 # Gem Wallet iOS Build Benchmark
 
-A simple tool to benchmark the full build time of Gem Wallet iOS, including Rust core compilation.
-
-## Prerequisites
-
-Xcode must be installed from the App Store. All other dependencies are installed automatically.
-
-## Usage
-
-```bash
-sh run.sh
-```
+Full clean build times for [Gem Wallet iOS](https://github.com/gemwalletcom/gem-ios) (Swift + Rust core).
 
 ## Results
 
-> ⚠️ Results from different Xcode versions should not be compared directly.
-> Each Xcode version uses a specific commit for consistent benchmarking.
+> Results from different Xcode versions are not comparable (different commits).
 
 ### Xcode 26.2
 
@@ -25,30 +14,20 @@ sh run.sh
 |--------|------|-------|-----|-------|------|-----|-------|-------|
 | Mac Studio | M4 Max | 16 | 64GB | 26.2 | 1m 14s | 2s | 41s | 1m 57s |
 
-### How to Submit Your Results
+## Run
 
-1. Run the benchmark: `sh run.sh`
-2. Results are automatically added to this README
-3. Submit a PR
+Requires Xcode. All other dependencies install automatically.
 
-### Column Descriptions
+```bash
+sh run.sh
+```
 
-| Column | Description |
-|--------|-------------|
-| Device | Mac model and year |
-| Chip | Apple Silicon or Intel CPU |
-| Cores | Number of CPU cores |
-| RAM | Memory capacity |
-| macOS | macOS version |
-| Xcode | Xcode version |
-| Rust | Rust core build time (Gemstone FFI) |
-| SPM | Swift Package Manager dependency resolution |
-| Build | Xcode project build time |
-| Total | Complete benchmark time |
+Results are added to this README automatically. Submit a PR to share.
 
-## What Gets Benchmarked
+## What's Measured
 
-1. **Rust Core Build** - Compiles the Gemstone FFI framework from Rust
-2. **SPM Resolve** - Resolves all Swift Package Manager dependencies
-3. **Xcode Build** - Clean build of the full Gem Wallet iOS project
-
+| Phase | Description |
+|-------|-------------|
+| Rust | Gemstone FFI framework (Rust to Swift) |
+| SPM | Swift Package Manager resolution |
+| Build | Xcode clean build |
