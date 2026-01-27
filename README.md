@@ -1,6 +1,6 @@
-# Gem Wallet iOS Build Benchmark
+# Xcode Performance Build Benchmark
 
-Full clean build times for [Gem Wallet iOS](https://github.com/gemwalletcom/gem-ios) (Swift + Rust core).
+Full clean build times for [Gem Wallet iOS](https://github.com/gemwalletcom/gem-ios) (Swift + Rust).
 
 ## Results
 
@@ -8,7 +8,7 @@ Full clean build times for [Gem Wallet iOS](https://github.com/gemwalletcom/gem-
 
 ### Xcode 26.2
 
-**Commit:** `28c46f7f` | **Rust:** `1.92.0`
+**Commit:** [`28c46f7f`](https://github.com/gemwalletcom/gem-ios/commit/28c46f7f) | **Rust:** `1.92.0`
 
 | Device | Chip | Cores | RAM | macOS | Rust | SPM | Build | Total |
 |--------|------|-------|-----|-------|------|-----|-------|-------|

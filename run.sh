@@ -73,7 +73,7 @@ collect_code_stats() {
 
 print_system_info() {
     echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║              Gem Wallet iOS Build Benchmark                  ║"
+    echo "║             Xcode Performance Build Benchmark                ║"
     echo "╠══════════════════════════════════════════════════════════════╣"
     echo "║ Device:     $DEVICE_NAME"
     echo "║ Chip:       $CHIP_SHORT"
