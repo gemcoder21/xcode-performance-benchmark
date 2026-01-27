@@ -57,20 +57,6 @@ collect_system_info() {
     esac
 }
 
-collect_code_stats() {
-    # Count Swift lines (excluding Packages/Build and derived data)
-    SWIFT_LINES=$(find . -name "*.swift" -not -path "./Packages/Build/*" -not -path "./build/*" -not -path "./.build/*" | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}')
-    SWIFT_FILES=$(find . -name "*.swift" -not -path "./Packages/Build/*" -not -path "./build/*" -not -path "./.build/*" | wc -l | tr -d ' ')
-
-    # Count Rust lines in core/
-    RUST_LINES=$(find ./core -name "*.rs" -not -path "./core/target/*" | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}')
-    RUST_FILES=$(find ./core -name "*.rs" -not -path "./core/target/*" | wc -l | tr -d ' ')
-
-    # Format with thousands separator
-    SWIFT_LINES_FMT=$(printf "%'d" "$SWIFT_LINES" 2>/dev/null || echo "$SWIFT_LINES")
-    RUST_LINES_FMT=$(printf "%'d" "$RUST_LINES" 2>/dev/null || echo "$RUST_LINES")
-}
-
 print_system_info() {
     echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║             Xcode Performance Build Benchmark                ║"
@@ -346,18 +332,9 @@ main() {
     clean_build
 
     echo ""
-    echo "Collecting code stats..."
-    collect_code_stats
-
-    echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "                      Running Benchmark                         "
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo ""
-    echo "Codebase size (commit $BENCHMARK_COMMIT):"
-    echo "  Swift: $SWIFT_LINES_FMT lines ($SWIFT_FILES files)"
-    echo "  Rust:  $RUST_LINES_FMT lines ($RUST_FILES files)"
-    echo ""
 
     TOTAL_START=$(date +%s)
 
