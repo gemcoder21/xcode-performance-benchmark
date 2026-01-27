@@ -10,7 +10,7 @@ Full clean build times for [Gem Wallet iOS](https://github.com/gemwalletcom/gem-
 
 | Device | Chip | Cores | RAM | Rust | SPM | Build | Total |
 |--------|------|-------|-----|------|-----|-------|-------|
-| Mac Studio | M4 Max | 16 | 64GB | 1m 14s | 2s | 41s | 1m 57s |
+| Mac Studio | M4 Max | 16 | 64GB | 1m 7s | 2s | 39s | 1m 48s |
 
 ## Run
 

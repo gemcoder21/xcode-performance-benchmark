@@ -1,0 +1,13 @@
+timestamp,device,chip,cores,memory_gb,macos,xcode,rust_build_sec,spm_resolve_sec,xcode_build_sec,total_sec,git_commit
+2026-01-27T18:53:56Z,"Mac Studio","M4 Max",16,64,26.2,26.2,[1/3] Building Rust Core (Gemstone)...
+[1/3] Completed in 76s
+76,[2/3] Resolving SPM Dependencies...
+[2/3] Completed in 7s
+7,[3/3] Building Xcode Project...
+[3/3] Completed in 43s
+43,126,28c46f7f
+2026-01-27T18:55:24Z,"Mac Studio","M4 Max",16,64,26.2,26.2,4,2,41,47,28c46f7f
+2026-01-27T18:58:49Z,"Mac Studio","M4 Max",16,64,26.2,26.2,74,2,41,117,28c46f7f
+2026-01-27T19:09:07Z,"Mac Studio","M4 Max",16,64,26.2,26.2,74,1,44,119,28c46f7f
+2026-01-27T19:14:41Z,"Mac Studio","M4 Max",16,64,26.2,26.2,68,1,40,109,28c46f7f
+2026-01-27T19:16:50Z,"Mac Studio","M4 Max",16,64,26.2,26.2,67,2,39,108,28c46f7f

@@ -3,7 +3,6 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$SCRIPT_DIR/gem-ios"
-RESULTS_FILE="$SCRIPT_DIR/results.csv"
 README_FILE="$SCRIPT_DIR/README.md"
 REPO_URL="https://github.com/gemwalletcom/gem-ios.git"
 
@@ -213,20 +212,6 @@ format_duration() {
     fi
 }
 
-save_results() {
-    rust_time=$1
-    spm_time=$2
-    build_time=$3
-    total_time=$4
-    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-
-    if [ ! -f "$RESULTS_FILE" ]; then
-        echo "timestamp,device,chip,cores,memory_gb,macos,xcode,rust_build_sec,spm_resolve_sec,xcode_build_sec,total_sec,git_commit" > "$RESULTS_FILE"
-    fi
-
-    echo "$timestamp,\"$DEVICE_NAME\",\"$CHIP_SHORT\",$CORES,$MEMORY_GB,$MACOS_VERSION,$XCODE_VERSION,$rust_time,$spm_time,$build_time,$total_time,$BENCHMARK_COMMIT" >> "$RESULTS_FILE"
-}
-
 parse_time_to_seconds() {
     time_str=$1
     minutes=0
@@ -278,8 +263,8 @@ update_readme() {
 
         if [ "$total_time" -lt "$existing_seconds" ]; then
             # New time is better, replace the line
-            escaped_line=$(echo "$existing_line" | sed 's/[[\.*^$()+?{|]/\\&/g')
-            sed -i '' "s|$escaped_line|$new_row|" "$README_FILE"
+            escaped_line=$(echo "$existing_line" | sed 's/[[\.*^$()+?{]/\\&/g')
+            sed -i '' "s#${escaped_line}#${new_row}#" "$README_FILE"
             echo "README.md updated with faster results (${total_fmt} vs ${existing_total})"
         else
             echo "Existing result is faster or equal (${existing_total} vs ${total_fmt}), not updating README"
@@ -313,8 +298,6 @@ print_results() {
     echo "╠══════════════════════════════════════════════════════════════╣"
     printf "║ %-20s %40s ║\n" "Total Time:" "$(format_duration $total_time)"
     echo "╚══════════════════════════════════════════════════════════════╝"
-    echo ""
-    echo "Results saved to: $RESULTS_FILE"
 }
 
 main() {
@@ -345,7 +328,6 @@ main() {
     TOTAL_END=$(date +%s)
     TOTAL_TIME=$((TOTAL_END - TOTAL_START))
 
-    save_results "$RUST_TIME" "$SPM_TIME" "$BUILD_TIME" "$TOTAL_TIME"
     update_readme "$RUST_TIME" "$SPM_TIME" "$BUILD_TIME" "$TOTAL_TIME"
     print_results "$RUST_TIME" "$SPM_TIME" "$BUILD_TIME" "$TOTAL_TIME"
 }
