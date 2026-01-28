@@ -59,6 +59,13 @@ print_system_info() {
     echo ""
 }
 
+check_ios_simulator_runtime() {
+    if ! xcrun simctl list runtimes 2>/dev/null | grep -q "^iOS"; then
+        echo "Installing iOS simulator runtime..."
+        xcodebuild -downloadPlatform iOS
+    fi
+}
+
 check_prerequisites() {
     echo "Checking and installing prerequisites..."
 
@@ -66,6 +73,8 @@ check_prerequisites() {
         echo "Error: Xcode command line tools not found. Please install Xcode from the App Store."
         exit 1
     fi
+
+    check_ios_simulator_runtime
 
     install_homebrew
     install_rust
