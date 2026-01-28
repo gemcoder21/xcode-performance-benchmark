@@ -2,16 +2,16 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_ROOT="$SCRIPT_DIR/gem-ios"
+PROJECT_ROOT="$SCRIPT_DIR/gem-android"
 README_FILE="$SCRIPT_DIR/README.md"
-REPO_URL="https://github.com/gemwalletcom/gem-ios.git"
+REPO_URL="https://github.com/gemwalletcom/gem-android.git"
 
 # Source shared functions
 . "$SCRIPT_DIR/common.sh"
 
 clone_repo() {
     if [ ! -d "$PROJECT_ROOT" ]; then
-        echo "Cloning gem-ios repository..."
+        echo "Cloning gem-android repository..."
         git clone --recursive "$REPO_URL" "$PROJECT_ROOT"
     fi
 }
@@ -19,16 +19,16 @@ clone_repo() {
 clone_repo
 cd "$PROJECT_ROOT"
 
-# Get benchmark config for Xcode version
+# Get benchmark config for Android Gradle Plugin version
 # Returns: BENCHMARK_COMMIT and BENCHMARK_RUST_VERSION
 get_benchmark_config() {
     case "$1" in
-        "26.2")
-            BENCHMARK_COMMIT="28c46f7f"
+        "8.9")
+            BENCHMARK_COMMIT="16f0b353"
             BENCHMARK_RUST_VERSION="1.92.0"
             ;;
         # Add new versions here:
-        # "26.3")
+        # "8.10")
         #     BENCHMARK_COMMIT="new_commit"
         #     BENCHMARK_RUST_VERSION="1.93.0"
         #     ;;
@@ -41,69 +41,105 @@ get_benchmark_config() {
 
 collect_system_info() {
     collect_base_system_info
-    XCODE_VERSION=$(xcodebuild -version | head -1 | awk '{print $2}')
-    XCODE_BUILD=$(xcodebuild -version | tail -1 | awk '{print $3}')
+
+    # Get Android SDK path
+    if [ -n "$ANDROID_HOME" ]; then
+        ANDROID_SDK_PATH="$ANDROID_HOME"
+    elif [ -n "$ANDROID_SDK_ROOT" ]; then
+        ANDROID_SDK_PATH="$ANDROID_SDK_ROOT"
+    elif [ -d "$HOME/Library/Android/sdk" ]; then
+        ANDROID_SDK_PATH="$HOME/Library/Android/sdk"
+    elif [ -d "$HOME/Android/Sdk" ]; then
+        ANDROID_SDK_PATH="$HOME/Android/Sdk"
+    else
+        ANDROID_SDK_PATH=""
+    fi
+
+    # Get AGP version from project
+    if [ -f "gradle/libs.versions.toml" ]; then
+        AGP_VERSION=$(grep 'agp\s*=' gradle/libs.versions.toml 2>/dev/null | sed 's/.*"\([^"]*\)".*/\1/' || echo "Unknown")
+    else
+        AGP_VERSION="Unknown"
+    fi
+
+    # Get Gradle wrapper version
+    if [ -f "gradle/wrapper/gradle-wrapper.properties" ]; then
+        GRADLE_VERSION=$(grep 'distributionUrl' gradle/wrapper/gradle-wrapper.properties | sed 's/.*gradle-\([0-9.]*\)-.*/\1/' || echo "Unknown")
+    else
+        GRADLE_VERSION="Unknown"
+    fi
 }
 
 print_system_info() {
     echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║             Xcode Performance Build Benchmark                ║"
+    echo "║            Android Performance Build Benchmark               ║"
     echo "╠══════════════════════════════════════════════════════════════╣"
     echo "║ Device:     $DEVICE_NAME"
     echo "║ Chip:       $CHIP_SHORT"
     echo "║ Cores:      $CORES"
     echo "║ Memory:     ${MEMORY_GB}GB"
     echo "║ macOS:      $OS_VERSION"
-    echo "║ Xcode:      $XCODE_VERSION ($XCODE_BUILD)"
+    echo "║ Gradle:     $GRADLE_VERSION"
+    echo "║ AGP:        $AGP_VERSION"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo ""
+}
+
+install_java() {
+    if ! command -v java >/dev/null 2>&1; then
+        echo "Installing Java 17..."
+        brew install openjdk@17
+        echo "Please add Java to your PATH:"
+        echo "  export PATH=\"/opt/homebrew/opt/openjdk@17/bin:\$PATH\""
+        export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"
+    fi
+
+    JAVA_VERSION=$(java -version 2>&1 | head -1 | awk -F '"' '{print $2}')
+    echo "  Java version: $JAVA_VERSION"
+}
+
+check_android_sdk() {
+    if [ -z "$ANDROID_SDK_PATH" ] || [ ! -d "$ANDROID_SDK_PATH" ]; then
+        echo "Error: Android SDK not found."
+        echo "Please install Android Studio or set ANDROID_HOME environment variable."
+        echo ""
+        echo "To install Android SDK manually:"
+        echo "  1. Download Android Studio from https://developer.android.com/studio"
+        echo "  2. Or set ANDROID_HOME to your SDK path"
+        exit 1
+    fi
+
+    export ANDROID_HOME="$ANDROID_SDK_PATH"
+    export ANDROID_SDK_ROOT="$ANDROID_SDK_PATH"
+    echo "  Android SDK: $ANDROID_SDK_PATH"
 }
 
 check_prerequisites() {
     echo "Checking and installing prerequisites..."
 
-    if ! command -v xcodebuild >/dev/null 2>&1; then
-        echo "Error: Xcode command line tools not found. Please install Xcode from the App Store."
-        exit 1
-    fi
-
     install_homebrew
     install_rust
+    install_java
+    check_android_sdk
     install_just
-
-    if ! command -v xcbeautify >/dev/null 2>&1; then
-        echo "Installing xcbeautify..."
-        brew install xcbeautify
-    fi
-
-    if ! command -v swiftformat >/dev/null 2>&1; then
-        echo "Installing swiftformat..."
-        brew install swiftformat
-    fi
-
-    if ! command -v swiftgen >/dev/null 2>&1; then
-        echo "Installing swiftgen..."
-        brew install swiftgen
-    fi
 
     echo ""
     echo "Prerequisites installed:"
     echo "  Rust:        $(rustc --version | awk '{print $2}')"
     echo "  Just:        $(just --version | awk '{print $2}')"
-    echo "  xcbeautify:  $(xcbeautify --version)"
     echo ""
 }
 
 install_toolchains() {
-    echo "Installing Rust iOS toolchains..."
-    just install-toolchains 2>/dev/null || true
+    echo "Running bootstrap (installs Rust Android toolchains and NDK)..."
+    just bootstrap 2>/dev/null || true
 }
 
 checkout_benchmark_commit() {
-    get_benchmark_config "$XCODE_VERSION"
+    get_benchmark_config "$AGP_VERSION"
 
     if [ -n "$BENCHMARK_COMMIT" ]; then
-        echo "Benchmark config for Xcode $XCODE_VERSION:"
+        echo "Benchmark config for AGP $AGP_VERSION:"
         echo "  Commit: $BENCHMARK_COMMIT"
         echo "  Rust:   $BENCHMARK_RUST_VERSION"
         echo ""
@@ -115,59 +151,70 @@ checkout_benchmark_commit() {
         }
         git submodule update --init --recursive 2>/dev/null || true
     else
-        echo "Warning: No benchmark config defined for Xcode $XCODE_VERSION"
+        echo "No specific benchmark commit defined for AGP $AGP_VERSION"
         echo "Using current HEAD"
         BENCHMARK_COMMIT=$(git rev-parse --short HEAD)
     fi
 }
 
 setup_rust_version() {
-    get_benchmark_config "$XCODE_VERSION"
+    get_benchmark_config "$AGP_VERSION"
 
     if [ -n "$BENCHMARK_RUST_VERSION" ]; then
-        echo "Setting up Rust $BENCHMARK_RUST_VERSION for Xcode $XCODE_VERSION..."
+        echo "Setting up Rust $BENCHMARK_RUST_VERSION..."
         rustup install "$BENCHMARK_RUST_VERSION" 2>/dev/null || true
         rustup default "$BENCHMARK_RUST_VERSION"
         echo "  Rust version: $(rustc --version)"
     else
-        echo "Warning: No Rust version defined for Xcode $XCODE_VERSION, using default"
+        echo "Using default Rust version"
         BENCHMARK_RUST_VERSION=$(rustc --version | awk '{print $2}')
     fi
 }
 
 clean_build() {
     echo "Cleaning previous build..."
-    just clean 2>/dev/null || true
-    rm -rf build/DerivedData 2>/dev/null || true
+    ./gradlew clean 2>/dev/null || true
+    rm -rf build 2>/dev/null || true
+    rm -rf app/build 2>/dev/null || true
+    rm -rf gemcore/build 2>/dev/null || true
+    rm -rf .gradle 2>/dev/null || true
+    # Clean all module build directories
+    find . -name "build" -type d -maxdepth 2 -exec rm -rf {} \; 2>/dev/null || true
     # Clean Rust build cache for accurate benchmark
-    cargo clean --manifest-path core/Cargo.toml 2>/dev/null || true
+    if [ -d "core" ]; then
+        cargo clean --manifest-path core/Cargo.toml 2>/dev/null || true
+    fi
+    # Clean cargo-ndk output and any generated Rust artifacts
+    rm -rf gemcore/src/main/jniLibs 2>/dev/null || true
+    rm -rf core/target 2>/dev/null || true
+    find . -name "target" -type d -maxdepth 3 -exec rm -rf {} \; 2>/dev/null || true
 }
 
 update_readme() {
     rust_time=$1
-    spm_time=$2
+    gradle_sync_time=$2
     build_time=$3
     total_time=$4
 
     # Format times for display
     rust_fmt=$(format_duration "$rust_time")
-    spm_fmt=$(format_duration "$spm_time")
+    sync_fmt=$(format_duration "$gradle_sync_time")
     build_fmt=$(format_duration "$build_time")
     total_fmt=$(format_duration "$total_time")
 
     # Create the new table row
-    new_row="| $DEVICE_NAME | $CHIP_SHORT | $CORES | ${MEMORY_GB}GB | $rust_fmt | $spm_fmt | $build_fmt | $total_fmt |"
+    new_row="| $DEVICE_NAME | $CHIP_SHORT | $CORES | ${MEMORY_GB}GB | $rust_fmt | $sync_fmt | $build_fmt | $total_fmt |"
 
-    # Find the Xcode version section
-    section_pattern="### Xcode $XCODE_VERSION"
+    # Find the AGP version section
+    section_pattern="### AGP $AGP_VERSION"
 
     if ! grep -q "$section_pattern" "$README_FILE"; then
-        echo "Warning: Section for Xcode $XCODE_VERSION not found in README.md"
+        echo "Warning: Section for AGP $AGP_VERSION not found in README.md"
         echo "Please add results manually"
         return
     fi
 
-    # Find section boundaries to search within
+    # Find section boundaries
     section_start=$(grep -n "$section_pattern" "$README_FILE" | head -1 | cut -d: -f1)
     next_section=$(tail -n +$((section_start + 1)) "$README_FILE" | grep -n "^### \|^---\|^## " | head -1 | cut -d: -f1)
     if [ -n "$next_section" ]; then
@@ -223,15 +270,20 @@ main() {
 
     TOTAL_START=$(date +%s)
 
-    RUST_TIME=$(run_benchmark "1/3" "just generate-stone" "Building Rust Core (Gemstone)")
-    SPM_TIME=$(run_benchmark "2/3" "just spm-resolve" "Resolving SPM Dependencies")
-    BUILD_TIME=$(run_benchmark "3/3" "just build" "Building Xcode Project")
+    # Phase 1: Build Rust core for Android
+    RUST_TIME=$(run_benchmark "1/3" "just generate" "Building Rust Core (Gemstone)")
+
+    # Phase 2: Gradle configuration/sync (triggers dependency resolution)
+    GRADLE_SYNC_TIME=$(run_benchmark "2/3" "./gradlew tasks --quiet" "Resolving Gradle Dependencies")
+
+    # Phase 3: Full Gradle build
+    BUILD_TIME=$(run_benchmark "3/3" "./gradlew assembleRelease" "Building Android Project")
 
     TOTAL_END=$(date +%s)
     TOTAL_TIME=$((TOTAL_END - TOTAL_START))
 
-    update_readme "$RUST_TIME" "$SPM_TIME" "$BUILD_TIME" "$TOTAL_TIME"
-    print_results_box "Rust Core Build" "$RUST_TIME" "SPM Resolve" "$SPM_TIME" "Xcode Build" "$BUILD_TIME" "$TOTAL_TIME"
+    update_readme "$RUST_TIME" "$GRADLE_SYNC_TIME" "$BUILD_TIME" "$TOTAL_TIME"
+    print_results_box "Rust Core Build" "$RUST_TIME" "Gradle Sync" "$GRADLE_SYNC_TIME" "Gradle Build" "$BUILD_TIME" "$TOTAL_TIME"
 }
 
 main "$@"

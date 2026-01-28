@@ -1,8 +1,12 @@
-# Xcode Performance Build Benchmark
+# Mobile Performance Build Benchmark
+
+Full clean build times for [Gem Wallet](https://gemwallet.com) iOS and Android apps (Swift/Kotlin + Rust).
+
+---
+
+## iOS Results
 
 Full clean build times for [Gem Wallet iOS](https://github.com/gemwalletcom/gem-ios) (Swift + Rust).
-
-## Results
 
 > Results from different Xcode versions are not comparable (different commits).
 
@@ -12,7 +16,7 @@ Full clean build times for [Gem Wallet iOS](https://github.com/gemwalletcom/gem-
 |--------|------|-------|-----|------|-----|-------|-------|
 | Mac Studio | M4 Max | 16 | 64GB | 1m 6s | 1s | 37s | 1m 44s |
 
-## Run
+### Run iOS Benchmark
 
 Requires Xcode. All other dependencies install automatically.
 
@@ -20,12 +24,45 @@ Requires Xcode. All other dependencies install automatically.
 sh run.sh
 ```
 
-Results are added to this README automatically. Submit a PR to share.
-
-## What's Measured
+### What's Measured (iOS)
 
 | Phase | Description |
 |-------|-------------|
-| Rust | Gemstone FFI framework (Rust to Swift) |
+| Rust | Gemstone FFI framework (Rust to Swift via UniFFI) |
 | SPM | Swift Package Manager resolution |
 | Build | Xcode clean build |
+
+---
+
+## Android Results
+
+Full clean build times for [Gem Wallet Android](https://github.com/gemwalletcom/gem-android) (Kotlin + Rust).
+
+> Results from different AGP versions are not comparable (different commits).
+
+### AGP 8.9 · Gradle 8.12 · [`16f0b353`](https://github.com/gemwalletcom/gem-android/commit/16f0b353) · Rust 1.92.0
+
+| Device | Chip | Cores | RAM | Rust | Sync | Build | Total |
+|--------|------|-------|-----|------|------|-------|-------|
+
+### Run Android Benchmark
+
+Requires Android SDK. All other dependencies install automatically.
+
+```bash
+sh run-android.sh
+```
+
+### What's Measured (Android)
+
+| Phase | Description |
+|-------|-------------|
+| Rust | Gemstone FFI framework (Rust to Kotlin via UniFFI) |
+| Sync | Gradle dependency resolution |
+| Build | Gradle assembleRelease |
+
+---
+
+## Contributing
+
+Results are added to this README automatically. Submit a PR to share your build times.
