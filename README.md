@@ -16,6 +16,7 @@ Full clean build times for [Gem Wallet iOS](https://github.com/gemwalletcom/gem-
 |--------|------|-------|-----|------|-----|-------|-------|
 | Mac Studio | M4 Max | 16 | 64GB | 1m 6s | 1s | 37s | 1m 44s |
 | Mac mini | M4 Pro | 12 | 48GB | 55s | 4s | 54s | 1m 53s |
+| Mac mini | M4 Pro | 12 | 24GB | 86s | 1s | 45s | 2m 12s |
 | Mac Studio | M2 Ultra | 24 | 128GB | 1m 29s | 9s | 55s | 2m 33s |
 
 ### Run iOS Benchmark
